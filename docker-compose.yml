@@ -4,7 +4,7 @@ services:
 
   postgres:
     image: postgres:latest
-    container_name: user-cache-postgres
+    container_name: user-cache-db
     environment:
       POSTGRES_DB: user_cache_db
       POSTGRES_USER: postgres
