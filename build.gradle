@@ -40,9 +40,8 @@ dependencies {
     // Jackson (JSON serialization for Redis)
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     // Swagger / OpenAPI
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
