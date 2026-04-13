@@ -63,12 +63,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto.Response getUserByUsername(String username) {
-        return null;
+        log.info("Cache miss - fetching user by username={} from DB", username);
+
+        return userRepository.findByUsername(username)
+                .map(UserMapper::toResponse)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with username: %s".formatted(username)));
     }
 
     @Override
     public List<UserDto.Response> getAllUsers() {
-        return List.of();
+        return userRepository.findAll()
+                .stream()
+                .map(UserMapper::toResponse)
+                .toList();
     }
 
     @Override

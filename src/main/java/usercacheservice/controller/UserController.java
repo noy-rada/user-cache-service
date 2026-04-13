@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import usercacheservice.dto.UserDto;
 import usercacheservice.service.UserService;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -33,6 +34,19 @@ public class UserController {
         return userService.getUserById(id);
     }
 
+    // Get user by username
+    @GetMapping("/username/{username}")
+    @Operation(summary = "Get user by username")
+    public UserDto.Response getUserByUsername(@PathVariable String username) {
+        return userService.getUserByUsername(username);
+    }
+
+    // Get all user
+    @GetMapping
+    @Operation(summary = "Get all users")
+    public List<UserDto.Response> getAllUsers() {
+        return userService.getAllUsers();
+    }
 
 
 }
