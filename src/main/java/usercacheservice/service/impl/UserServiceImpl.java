@@ -127,7 +127,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(UUID id) {
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: %s".formatted(id)));
 
+        userRepository.delete(user);
+
+        var usersCache = cacheManager.getCache("users");
+        if (usersCache != null) {
+            usersCache.evict(id);
+        }
+
+        var usersByUsernameCache = cacheManager.getCache("users-by-username");
+        if (usersByUsernameCache != null) {
+            usersByUsernameCache.evict(user.getUsername());
+        }
+
+        log.info("Deleted user with id={}", id);
     }
 }

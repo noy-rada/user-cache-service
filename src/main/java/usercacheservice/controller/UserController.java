@@ -54,4 +54,11 @@ public class UserController {
     public UserDto.Response updateUser(@PathVariable UUID id, @Valid @RequestBody UserDto.UpdateRequest request) {
         return userService.updateUser(id, request);
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Delete a user", description = "Deletes user from PostgreSQL and removes related Redis cache entries")
+    public void deleteUser(@PathVariable UUID id) {
+        userService.deleteUser(id);
+    }
 }
