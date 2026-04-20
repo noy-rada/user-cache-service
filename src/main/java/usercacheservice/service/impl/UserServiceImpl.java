@@ -3,6 +3,7 @@ package usercacheservice.service.impl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,6 +26,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final CacheManager cacheManager;
 
     @Override
     @Transactional
@@ -79,8 +81,49 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDto.Response updateUser(UUID id, UserDto.UpdateRequest updateRequest) {
-        return null;
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: %s".formatted(id)));
+
+        var previousUsername = user.getUsername();
+
+        if (updateRequest.username() != null && !updateRequest.username().equals(user.getUsername())) {
+            if (userRepository.existsByUsernameAndIdNot(updateRequest.username(), id)) {
+                throw new ConflictException("Username already exists: %s".formatted(updateRequest.username()));
+            }
+            user.setUsername(updateRequest.username());
+        }
+
+        if (updateRequest.email() != null && !updateRequest.email().equals(user.getEmail())) {
+            if (userRepository.existsByEmailAndIdNot(updateRequest.email(), id)) {
+                throw new ConflictException("Email already exists: %s".formatted(updateRequest.email()));
+            }
+            user.setEmail(updateRequest.email());
+        }
+
+        if (updateRequest.password() != null) {
+            user.setPassword(passwordEncoder.encode(updateRequest.password()));
+        }
+
+        var updatedUser = userRepository.save(user);
+        var response = UserMapper.toResponse(updatedUser);
+
+        var usersCache = cacheManager.getCache("users");
+        if (usersCache != null) {
+            usersCache.put(response.id(), response);
+        }
+
+        var usersByUsernameCache = cacheManager.getCache("users-by-username");
+        if (usersByUsernameCache != null) {
+            if (!previousUsername.equals(response.username())) {
+                usersByUsernameCache.evict(previousUsername);
+            }
+            usersByUsernameCache.put(response.username(), response);
+        }
+
+        log.info("Updated user with id={}", id);
+        return response;
     }
 
     @Override

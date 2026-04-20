@@ -48,5 +48,10 @@ public class UserController {
         return userService.getAllUsers();
     }
 
-
+    // Update a user
+    @PutMapping("/{id}")
+    @Operation(summary = "Update a user", description = "Updates user in PostgreSQL and refreshes Redis cache")
+    public UserDto.Response updateUser(@PathVariable UUID id, @Valid @RequestBody UserDto.UpdateRequest request) {
+        return userService.updateUser(id, request);
+    }
 }
